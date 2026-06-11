@@ -43,6 +43,7 @@ The system analyzes customer data and predicts whether customers may leave the b
 
 ```bash
 pip install flask pandas scikit-learn matplotlib
+```
 ---
 
 ## Author
