@@ -1,89 +1,58 @@
 from flask import Flask, render_template, request
-import joblib
+import pandas as pd
+import pickle
 import numpy as np
+import os
 
 app = Flask(__name__)
-
-# Load trained ML model
-
-model = joblib.load('churn_model.pkl')
-
-
-# Home Page
+model = pickle.load(open('churn_model.pkl', 'rb'))
+UPLOAD_FOLDER = "uploads"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
-# Prediction Input Page
-
-@app.route('/predict')
+@app.route('/predict', methods=['POST'])
 def predict():
-    return render_template('predict.html')
 
+    file = request.files['file']
 
-# Result Page
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
 
-@app.route('/result', methods=['POST'])
-def result():
+    file.save(filepath)
 
-    # Get form data
+    data = pd.read_csv(filepath)
 
-    tenure = int(request.form['tenure'])
+    churn_count = 0
+    no_churn_count = 0
 
-    charges = float(request.form['charges'])
+    for index, row in data.iterrows():
 
-    senior = int(request.form['age'])
+        tenure = row['tenure']
+        charges = row['MonthlyCharges']
 
-    # Create array for prediction
+        prediction = model.predict([[tenure, charges]])
 
-    data = np.array([[tenure, charges, senior]])
+        result = prediction[0]
 
-    # Predict churn
+        if result == 1:
+            churn_count += 1
+        else:
+            no_churn_count += 1
 
-    prediction = model.predict(data)
+    total = churn_count + no_churn_count
 
-    # Predict probability
+    churn_percent = (churn_count / total) * 100
+    no_churn_percent = (no_churn_count / total) * 100
 
-    probability = model.predict_proba(data)
+    output = f"""
+    Total Customers: {total}
+    Churn: {churn_percent:.2f}%
+    No Churn: {no_churn_percent:.2f}%
+    """
 
-    # Convert prediction into text
-
-    if prediction[0] == 1:
-
-        result = "High Churn Risk"
-
-    else:
-
-        result = "Low Churn Risk"
-
-    # Send data to HTML page
-
-    return render_template(
-
-        'result.html',
-
-        prediction=result,
-
-        probability=round(probability[0][1] * 100, 2),
-
-        age=senior,
-
-        charges=charges,
-
-        tenure=tenure
-    )
-
-
-# Dashboard Page
-
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
-
-
-# Run Flask App
+    return render_template('index.html', result=output)
 
 if __name__ == '__main__':
     app.run(debug=True)

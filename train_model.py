@@ -1,54 +1,23 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
-import joblib
+from sklearn.tree import DecisionTreeClassifier
+import pickle
 
-# Load dataset
+# Sample training data
+data = {
+    'tenure': [1, 2, 3, 10, 12, 15],
+    'MonthlyCharges': [70, 90, 80, 40, 30, 20],
+    'Churn': [1, 1, 1, 0, 0, 0]
+}
 
-df = pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv')
+df = pd.DataFrame(data)
 
-# Select useful columns
-
-df = df[['tenure', 'MonthlyCharges', 'SeniorCitizen', 'Churn']]
-
-# Convert Churn values
-
-encoder = LabelEncoder()
-
-df['Churn'] = encoder.fit_transform(df['Churn'])
-
-# Features and target
-
-X = df[['tenure', 'MonthlyCharges', 'SeniorCitizen']]
-
+X = df[['tenure', 'MonthlyCharges']]
 y = df['Churn']
 
-# Split dataset
+model = DecisionTreeClassifier()
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+model.fit(X, y)
 
-# Train model
+pickle.dump(model, open('churn_model.pkl', 'wb'))
 
-model = LogisticRegression()
-
-model.fit(X_train, y_train)
-
-# Predictions
-
-predictions = model.predict(X_test)
-
-# Accuracy
-
-accuracy = accuracy_score(y_test, predictions)
-
-print("Model Accuracy:", accuracy)
-
-# Save model
-
-joblib.dump(model, 'churn_model.pkl')
-
-print("Real Dataset Model Trained Successfully")
+print("Model trained successfully")

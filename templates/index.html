@@ -2,20 +2,60 @@
 <html>
 
 <head>
+
     <title>Customer Churn Analysis</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 
 <body>
 
-    <h1>Customer Churn Analysis System</h1>
+    <div class="container">
 
-    <p>Welcome to our ML-powered churn prediction web application.</p>
+        <h1>📊 Customer Churn Analysis</h1>
 
-    <a href="/predict">
-    <button>Predict Churn</button>
-</a>
+        <p class="subtitle">
+            Upload customer CSV data and analyze churn instantly
+        </p>
+
+        <form action="/predict"
+              method="POST"
+              enctype="multipart/form-data">
+
+            <input type="file"
+                   name="file"
+                   required>
+
+            <br>
+
+            <button type="submit">
+                Analyze Customers
+            </button>
+
+        </form>
+
+        {% if result %}
+
+        <div class="result">
+
+            <h2>📈 Analysis Result</h2>
+
+            <p>{{ result }}</p>
+
+            <img src="{{ url_for('static',
+                     filename='churn_chart.png') }}">
+
+        </div>
+
+        {% endif %}
+
+        <div class="footer">
+            Powered by AI & Machine Learning 🚀
+        </div>
+
+    </div>
 
 </body>
 
